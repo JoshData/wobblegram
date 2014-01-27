@@ -65,16 +65,19 @@ def to_complex(power, angle):
 	return power * (np.cos(angle) + np.sin(angle) * 1j)
 
 def mutate(fft1, fft2, alpha, band_index):
-	# linearly interpolate complex FFT value at each frequency
+	# Linearly interpolate complex FFT value at each frequency band.
+	# This works reasonably well, but it seems like because of the
+	# change in power with |alpha| > 1 the contrast of the image
+	# changes significantly with a lot of points going to white/black.
 	return fft1 * (1 - alpha) + fft2 * alpha
 
-	# note that that's different from interpolating the power and phase components,
-	# and interpolating power and phase comes out worse.
-	#power1 = np.abs(fft1)
-	#power2 = np.abs(fft2)
-	#phase1 = np.angle(fft1)
-	#phase2 = np.angle(fft2)
-	#return to_complex(power1*(1-alpha) + power2*alpha, phase1*(1-alpha) + phase2*alpha)
+	# That's different from interpolating the power and phase components
+	# or just the phase component independently. The downside with this
+	# method is that it creates a grainy image.
+	return to_complex(
+		np.abs(fft1)*(1-alpha) + np.abs(fft2)*alpha,
+		np.angle(fft1)*(1-alpha) + np.angle(fft2)*alpha)
+
 
 def mutate_bands(fft1, fft2, alpha):
 	bands = [mutate(fft1[i], fft2[i], alpha, i) for i in range(len(fft1))]
@@ -121,6 +124,6 @@ frames = [to_image(mutate_bands(fft1, fft2, omega(float(frame)/nframes) * alpha)
 save_animated_gif(
 	sys.argv[4],
 	frames,
-	0.05,
-	True,
+	0.5/len(frames), # frame duration
+	True, # repeat indefinitely
 	)
