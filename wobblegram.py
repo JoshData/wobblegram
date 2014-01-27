@@ -115,7 +115,7 @@ nframes = int(sys.argv[2])
 alpha = float(sys.argv[3])
 def omega(t): return np.cos(2*np.pi * t)
 frames = [to_image(mutate_bands(fft1, fft2, omega(float(frame)/nframes) * alpha), size1)
-		 for frame in range(0, nframes+1)]
+		 for frame in range(0, nframes)]
 
 # save animated gif
 save_animated_gif(
